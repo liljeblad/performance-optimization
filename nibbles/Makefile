@@ -14,11 +14,11 @@ all: nibbles_asm nibbles_asm_start
 
 # ASM game
 nibbles_asm: main.o nibbles.o helpers.o
-	gcc -lcurses $^ -o $@
+	gcc $^ -lcurses -o $@
 
 # ASM game
 nibbles_asm_start: start.o nibbles.o helpers.o workaround.o
-	gcc -lcurses -lc -nostdlib $^ -o $@
+	gcc -nostdlib $^ -lcurses -o $@ -lc
 
 clean:
 	rm -f *~
