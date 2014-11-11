@@ -108,33 +108,19 @@ init_apples:
 	movl	$0, %ebx
 apples_loop:
 	# Call function rand_num to get a random number between 0 and argument passed, stored in %edx
-	pushl	MAX_X
-	call	rand_num
-	addl	$4, %esp
-	movl	%edx, (%esi)
+	call	rand
+	andl	MAX_X, %eax
+	movl	%eax, (%esi)
 
-	pushl	MAX_Y
-	call	rand_num
-	addl	$4, %esp
-	movl	%edx, 4(%esi)
+	call	rand
+	andl	MAX_Y, %eax
+	movl	%eax, 4(%esi)
 
 	# Prepare for next iteration
 	addl	$8, %esi
 	incl	%ebx
 	cmpl	apples_n, %ebx
 	jne		apples_loop
-
-	ret
-
-# Put a random number between 0 and passed argument in %edx
-rand_num:
-	movl	4(%esp), %ecx
-	
-	xorl	%eax, %eax
-	call	rand
-	xorl	%edx, %edx
-	movl	%eax, %edx
-	divl	%ecx
 
 	ret
 
