@@ -79,7 +79,6 @@ save_arguments:
 # Initialize the snake array
 init_snake:
 	movl	$snake, %esi
-	movl	snake_len, %eax
 
 	pushl	pos_x
 
@@ -95,7 +94,7 @@ snake_loop:
 	# Prepare for next iteration
 	addl	$8, %esi
 	incl	%ebx
-	cmpl	%eax, %ebx
+	cmpl	snake_len, %ebx
 	jne		snake_loop
 
 	popl	pos_x
@@ -105,7 +104,6 @@ snake_loop:
 # Initialize the apples array
 init_apples:
 	movl	$apples, %esi
-	movl	apples_n, %eax
 
 	movl	$0, %ebx
 apples_loop:
@@ -123,7 +121,7 @@ apples_loop:
 	# Prepare for next iteration
 	addl	$8, %esi
 	incl	%ebx
-	cmpl	%eax, %ebx
+	cmpl	apples_n, %ebx
 	jne		apples_loop
 
 	ret
@@ -131,16 +129,12 @@ apples_loop:
 # Put a random number between 0 and passed argument in %edx
 rand_num:
 	movl	4(%esp), %ecx
-
-	pushl	%eax
 	
 	xorl	%eax, %eax
 	call	rand
 	xorl	%edx, %edx
 	movl	%eax, %edx
 	divl	%ecx
-
-	popl	%eax
 
 	ret
 
