@@ -56,7 +56,7 @@ update_game:
 	call 	clear
 
 # Gets called when the game is over
-game_over:
+end_game:
 	call	nib_end
 ########################################################
 # Game over!
@@ -217,7 +217,7 @@ snake_collision_loop:
 	jne 	end_snake_collision_loop
 
 	# If the snake hits itself, game over!
-	jmp 	game_over
+	jmp 	end_game
 
 end_snake_collision_loop:
 	incl	%ecx
