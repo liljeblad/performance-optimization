@@ -41,8 +41,8 @@ start_game:
 update_game:
 	call	move_snake		# Performance this!
 	call 	check_snake_collision
-	call 	check_apple_collision
 	call 	draw_snake
+	call 	check_apple_collision
 	call 	draw_apples
 	call 	wait_for_input
 	call 	clear
@@ -233,7 +233,6 @@ apple_collision_loop:
 	jne 	iterate_apple_collision_loop
 
 	call 	respawn_apple
-	# TODO Fix bug where a "O" appears when incrementing snake_len
 	incl 	snake_len
 	jmp 	end_apple_collision_loop
 
