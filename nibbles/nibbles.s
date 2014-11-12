@@ -1,6 +1,5 @@
 .section .data
 # Variables that will hold positions
-# TODO, might not be needed
 pos_x:	.long 30
 pos_y:	.long 12
 
@@ -234,6 +233,7 @@ apple_collision_loop:
 	jne 	iterate_apple_collision_loop
 
 	call 	respawn_apple
+	# TODO Fix bug where a "O" appears when incrementing snake_len
 	incl 	snake_len
 	jmp 	end_apple_collision_loop
 
