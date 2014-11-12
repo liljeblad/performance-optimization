@@ -1,23 +1,18 @@
 .section .data
-# Debug
-output:	.asciz "VALUE: %d\n"
-
 # Variables that will hold positions
-pos_x:	.long 40
-pos_y:	.long 11
+# TODO, might not be needed
+pos_x:	.long 30
+pos_y:	.long 12
 
 # Variables to keep track of which way the snake moves
 dir_x:	.long 1
 dir_y:	.long 0
 
 # Size of the screen
-MIN_X:	.long 0
-MIN_Y:	.long 0
-MAX_X:	.long 79
-MAX_Y:	.long 23
+MAX_X:	.long 59
+MAX_Y:	.long 24
 
 # All input variables needed to move the snake and quit the game
-# TODO Change to byte?
 KBD_QUIT:	.long 'q'
 KBD_UP:		.long 'w'
 KBD_LEFT:	.long 'a'
@@ -50,9 +45,7 @@ update_game:
 	call 	check_apple_collision
 	call 	draw_snake
 	call 	draw_apples
-	pushl	$100000
-	call 	usleep
-	addl	$4, %esp
+	call 	wait_for_input
 	call 	clear
 	call 	handle_input
 
@@ -131,19 +124,17 @@ move_snake:
 	movl	%eax, pos_y
 
 	pushl	MAX_X
-	pushl	MIN_X
 	pushl	dir_x
 	pushl	(%esi)
 	call 	move_head
-	addl	$16, %esp
+	addl	$12, %esp
 	movl	%eax, (%esi)
 
 	pushl	MAX_Y
-	pushl	MIN_Y
 	pushl	dir_y
 	pushl	4(%esi)
 	call 	move_head
-	addl	$16, %esp
+	addl	$12, %esp
 	movl	%eax, 4(%esi)
 
 	call 	move_tail
@@ -155,23 +146,22 @@ move_head:
 	movl	4(%esp), %eax
 	movl	8(%esp), %ebx
 	movl	12(%esp), %ecx
-	movl	16(%esp), %edx
 
-	cmpl	%ecx, %eax
+	cmpl	$0, %eax
 	jl		case_min
 
-	cmpl	%edx, %eax
+	cmpl	%ecx, %eax
 	jg		case_max
 
 	addl	%ebx, %eax
 	jmp		move_end
 
 case_min:
-	movl	%edx, %eax
+	movl	%ecx, %eax
 	jmp		move_end
 
 case_max:
-	movl	%ecx, %eax
+	movl	$0, %eax
 
 move_end:
 	ret
@@ -309,6 +299,15 @@ draw_apples_loop:
 
 	ret
 
+# Wait for a little while to let the player press a key
+wait_for_input:
+	pushl	$100000
+	call 	usleep
+	addl	$4, %esp
+
+	ret
+
+# Handle the key the player pressed
 handle_input:
 	call 	nib_poll_kbd
 
