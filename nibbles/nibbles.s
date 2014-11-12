@@ -54,6 +54,7 @@ update_game:
 	call 	usleep
 	addl	$4, %esp
 	call 	clear
+	call 	handle_input
 
 # Gets called when the game is over
 end_game:
@@ -308,10 +309,54 @@ draw_apples_loop:
 
 	ret
 
-#####################################
-# DEBUG PRINT
-#####################################
-#	pushl	%eax
-#	pushl	$output
-#	call 	printf
-#	addl	$8, %esp
+handle_input:
+	call 	nib_poll_kbd
+
+	cmpl	%eax, KBD_QUIT
+	je 		end_game
+
+	cmpl	%eax, KBD_LEFT
+	je 		turn_left
+
+	cmpl	%eax, KBD_RIGHT
+	je 		turn_right
+
+	cmpl	%eax, KBD_UP
+	je 		turn_up
+
+	cmpl	%eax, KBD_DOWN
+	je 		turn_down
+
+	jmp		update_game
+
+turn_left:
+	cmpl	$1, dir_x
+	je 		update_game
+
+	movl 	$-1, dir_x
+	movl 	$0, dir_y
+	jmp 	update_game
+
+turn_right:
+	cmpl	$-1, dir_x
+	je 		update_game
+
+	movl 	$1, dir_x
+	movl 	$0, dir_y
+	jmp 	update_game
+
+turn_up:
+	cmpl	$1, dir_y
+	je 		update_game
+
+	movl 	$-1, dir_y
+	movl 	$0, dir_x
+	jmp 	update_game
+
+turn_down:
+	cmpl	$-1, dir_y
+	je 		update_game
+
+	movl 	$1, dir_y
+	movl 	$0, dir_x
+	jmp 	update_game
