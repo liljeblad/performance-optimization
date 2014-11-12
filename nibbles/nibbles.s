@@ -39,7 +39,7 @@ start_game:
 
 # Game loop
 update_game:
-	call	move_snake		# Performance this!
+	call	move_snake
 	call 	check_snake_collision
 	call 	draw_snake
 	call 	check_apple_collision
