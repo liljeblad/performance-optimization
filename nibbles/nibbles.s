@@ -28,7 +28,7 @@ KBD_RIGHT:	.long 'd'
 snake:			.fill 500, 4, 1
 snake_len:		.long 0
 snake_symbol:	.byte 'O'
-apples:			.fill 30, 4, 0
+apples:			.fill 30, 4, 1
 apples_n:		.long 0
 apples_symbol:	.byte '*'
 
@@ -50,12 +50,7 @@ update_game:
 	call 	check_apple_collision
 	call 	draw_snake
 	call 	draw_apples
-
-loop:
-	jmp loop
-
-	# TODO, make the program sleep less
-	pushl	$1000000
+	pushl	$100000
 	call 	usleep
 	addl	$4, %esp
 	call 	clear
@@ -107,7 +102,8 @@ init_apples:
 
 	movl	$0, %ebx
 apples_loop:
-	# Call function rand_num to get a random number between 0 and argument passed, stored in %edx
+	# Call function rand to get a "random" number,
+	# which is masked with the max width/height of the screen
 	call	rand
 	andl	MAX_X, %eax
 	movl	%eax, (%esi)
@@ -124,11 +120,12 @@ apples_loop:
 
 	ret
 
+# Move the coords in the snake array
 move_snake:
 	movl	$snake, %esi
 
 	movl	(%esi), %eax	# Save the x and y positions of the head
-	movl	%eax, pos_x
+	movl	%eax, pos_x		# To be used later when the tail will move
 	movl	4(%esi), %eax
 	movl	%eax, pos_y
 
@@ -152,6 +149,7 @@ move_snake:
 
 	ret	
 
+# Move the head
 move_head:
 	movl	4(%esp), %eax
 	movl	8(%esp), %ebx
@@ -177,10 +175,10 @@ case_max:
 move_end:
 	ret
 
+# After the head is moved, just use the previous
+# coords to move the rest of the tail
 move_tail:
-	movl 	snake_len, %eax
-	decl	%eax
-	movl 	$0, %ebx
+	movl 	$1, %ebx
 
 tail_loop:
 	addl	$8, %esi
@@ -196,19 +194,81 @@ tail_loop:
 	movl 	%edx, pos_y
 
 	incl	%ebx
-	cmpl	%eax, %ebx
+	cmpl	snake_len, %ebx
 	jne		tail_loop
 
 	ret
 
+# Check if the snake hit itself during last move
 check_snake_collision:
-	# TODO
+	movl 	$snake, %esi
+	movl	(%esi), %eax	# Save the x and y positions of the head
+	movl	4(%esi), %ebx
+
+	movl 	$1, %ecx
+
+snake_collision_loop:
+	addl	$8, %esi
+
+	cmpl	%eax, (%esi)
+	jne 	end_snake_collision_loop
+
+	cmpl	%ebx, 4(%esi)
+	jne 	end_snake_collision_loop
+
+	# If the snake hits itself, game over!
+	jmp 	game_over
+
+end_snake_collision_loop:
+	incl	%ecx
+	cmpl	snake_len, %ecx
+	jne 	snake_collision_loop
+
 	ret
 
+# Check if the snake ate an apple during last move
 check_apple_collision:
-	# TODO
+	movl 	$snake, %esi
+	movl	(%esi), %eax	# Save the x and y positions of the snake's head
+	movl	4(%esi), %ebx	# if they are the same as any coords in the 
+							# apples array there will be a collision
+	movl 	$apples, %esi
+	movl 	$0, %ecx
+
+apple_collision_loop:
+	cmpl	%eax, (%esi)
+	jne 	iterate_apple_collision_loop
+
+	cmpl	%ebx, 4(%esi)
+	jne 	iterate_apple_collision_loop
+
+	call 	respawn_apple
+	incl 	snake_len
+	jmp 	end_apple_collision_loop
+
+iterate_apple_collision_loop:
+	addl	$8, %esi
+	incl	%ecx
+	cmpl	apples_n, %ecx
+	jne 	apple_collision_loop
+
+end_apple_collision_loop:
 	ret
 
+# An apple was eaten, spawn a new one on the board
+respawn_apple:
+	# Gets new "random" x and y position and puts it in the apples array
+	call	rand
+	andl	MAX_X, %eax
+	movl	%eax, (%esi)
+
+	call	rand
+	andl	MAX_Y, %eax
+	movl	%eax, 4(%esi)
+
+	ret
+
+# Draw the snake, i.e. put an "O" in all coords in the snake array
 draw_snake:
 	movl 	$snake, %esi
 	movl 	$0, %ebx
@@ -228,6 +288,7 @@ draw_snake_loop:
 
 	ret
 
+# Draw the apples, i.e. put an "*" in all coords in the apples array
 draw_apples:
 	movl 	$apples, %esi
 	movl 	$0, %ebx
