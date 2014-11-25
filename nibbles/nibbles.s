@@ -1,10 +1,10 @@
 .section .data
 # Variables that will hold positions
-pos_x:	.long 30
-pos_y:	.long 12
+pos_x:	.long 30	# To keep the snake spawing in the middle when starting a new game
+pos_y:	.long 12	# these variables should be half the values of MAX_X and MAX_Y
 
 # Variables to keep track of which way the snake moves
-dir_x:	.long 1
+dir_x:	.long 1 	# When the game starts it moves right
 dir_y:	.long 0
 
 # Size of the screen
@@ -19,6 +19,7 @@ KBD_DOWN:	.long 's'
 KBD_RIGHT:	.long 'd'
 
 # Game variables
+# Keeping the coords of the snake and all active apples, as well as the symbols
 snake:			.fill 500, 4, 1
 snake_len:		.long 0
 snake_symbol:	.byte 'O'
@@ -57,20 +58,18 @@ end_game:
 
 # Save arguments from program call to variables
 save_arguments:
-	movl	12(%esp), %eax
+	movl	12(%esp), %eax	# Save the second variable in apples_n, the number of apples
 	movl	%eax, apples_n
-	movl	8(%esp), %eax
+	movl	8(%esp), %eax	# Save the first variable in snake_len, the length of the snake initially
 	movl	%eax, snake_len
 
 	ret
 
 # Initialize the snake array
 init_snake:
-	movl	$snake, %esi
+	movl	$snake, %esi 	# Save pointer to the snake
 
-	pushl	pos_x
-
-	movl	$0, %ebx
+	xorl	%ebx, %ebx	# Set register to 0
 snake_loop:
 	# Save positions to snake array
 	movl	pos_x, %ecx
@@ -80,20 +79,19 @@ snake_loop:
 	movl	%ecx, 4(%esi)
 
 	# Prepare for next iteration
-	addl	$8, %esi
-	incl	%ebx
+	addl	$8, %esi 	# Move the pointer to the next pair of coords of the snake
+	incl	%ebx 	# Increment the number of moves that have been made
 	cmpl	snake_len, %ebx
-	jne		snake_loop
-
-	popl	pos_x
+	jne		snake_loop 	# When enough moves have been made, don't jump back
 
 	ret
 
 # Initialize the apples array
+# Basically the same types of operations as init_snake
 init_apples:
 	movl	$apples, %esi
 
-	movl	$0, %ebx
+	xorl	%ebx, %ebx
 apples_loop:
 	# Call function rand to get a "random" number,
 	# which is masked with the max width/height of the screen
@@ -122,14 +120,14 @@ move_snake:
 	movl	4(%esi), %eax
 	movl	%eax, pos_y
 
-	pushl	MAX_X
+	pushl	MAX_X	# Push arguments to be used in the moving of the head
 	pushl	dir_x
 	pushl	(%esi)
 	call 	move_head
-	addl	$12, %esp
+	addl	$12, %esp 	# Restore stack pointer
 	movl	%eax, (%esi)
 
-	pushl	MAX_Y
+	pushl	MAX_Y	# Doing the same for y
 	pushl	dir_y
 	pushl	4(%esi)
 	call 	move_head
@@ -160,7 +158,7 @@ case_min:
 	jmp		move_end
 
 case_max:
-	movl	$0, %eax
+	xorl	%eax, %eax
 
 move_end:
 	ret
@@ -223,7 +221,7 @@ check_apple_collision:
 	movl	4(%esi), %ebx	# if they are the same as any coords in the 
 							# apples array there will be a collision
 	movl 	$apples, %esi
-	movl 	$0, %ecx
+	xorl 	%ecx, %ecx
 
 apple_collision_loop:
 	cmpl	%eax, (%esi)
@@ -261,7 +259,7 @@ respawn_apple:
 # Draw the snake, i.e. put an "O" in all coords in the snake array
 draw_snake:
 	movl 	$snake, %esi
-	movl 	$0, %ebx
+	xorl 	%ebx, %ebx
 
 draw_snake_loop:
 	pushl 	snake_symbol
@@ -281,7 +279,7 @@ draw_snake_loop:
 # Draw the apples, i.e. put an "*" in all coords in the apples array
 draw_apples:
 	movl 	$apples, %esi
-	movl 	$0, %ebx
+	xorl 	%ebx, %ebx
 
 draw_apples_loop:
 	pushl 	apples_symbol
